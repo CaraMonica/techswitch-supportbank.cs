@@ -39,5 +39,22 @@ namespace SupportBank
             toUser = ToUser;
             amount = Amount;
         }
+
+        public static Transaction? FromArray(string[] transaction)
+        {
+            DateTime date;
+            if(!DateTime.TryParse(transaction[0], out date))
+            {
+                return null;
+            }
+
+            decimal amount;
+            if(!decimal.TryParse(transaction[4], out amount))
+            {
+                return null;
+            }
+            
+            return new Transaction(date, transaction[1], transaction[2], transaction[3], amount);
+        }
     }
 }
