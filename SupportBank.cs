@@ -19,14 +19,15 @@ namespace SupportBank
 
         public SupportBank()
         {
-            Transactions = SupportBank.GetTransactions("./data/Transactions2014.csv");
+            Transactions = SupportBank.GetTransactions("./data/DodgyTransactions2015.csv");
             NameToAccount = GetAccountsDictionary();
         }
 
         private static IEnumerable<Transaction> GetTransactions(string fileName) => File.ReadAllLines(fileName)
                                                                                     .Skip(1)
                                                                                     .Select(row => row.Split(","))
-                                                                                    .Select(row => Transaction.FromArray(row));
+                                                                                    .Select(row => Transaction.FromArray(row))
+                                                                                    .Where(t => t != null);
                                     
 
         private Dictionary<string, Account> GetAccountsDictionary()
