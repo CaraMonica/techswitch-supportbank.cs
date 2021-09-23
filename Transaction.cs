@@ -13,11 +13,7 @@ namespace SupportBank
     class Transaction
     {
         private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
-
-        // Counter to create individual ids for each transaction.
         private static int counter = 0;
-
-        // Features
         public int Id { get; set; }
         public DateTime Date { get; set; }
         public string FromAccount { get; set; }

@@ -12,32 +12,34 @@ namespace SupportBank
     class SupportBank
     {
         private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
-
         public IEnumerable<Transaction> Transactions { get; set; }
-        Dictionary<string, Account> NameToAccount { get; set; }
-
-        public SupportBank(string transactionFile)
+        public Dictionary<string, Account> NameToAccount { get; set; }
+        private SupportBank()
+        {
+            Transactions = SupportBank.GetTransactionsFromFile("./data/Transactions2014.csv");
+            NameToAccount = GetAccountsDictionary();
+        }
+        private SupportBank(string transactionFile)
         {
             Transactions = SupportBank.GetTransactionsFromFile(transactionFile);
             NameToAccount = GetAccountsDictionary();
         }
-
-        public SupportBank()
+        public static SupportBank FromFile()
         {
-            Transactions = SupportBank.GetTransactionsFromFile("./data/Transactions2014");
-            NameToAccount = GetAccountsDictionary();
-        }
-        
-        static SupportBank FromFile()
-        {
-            Console.WriteLine("To load your own file type the location below. To use the default press enter.");
-            string fileName = Console.ReadLine();
-            if (fileName.EndsWith("json") || fileName.EndsWith("csv"))
+            while (true)
             {
-                return new SupportBank(fileName);
+                Console.WriteLine("\nTo load your own file type the location below. To use the default press enter.");
+                string fileName = Console.ReadLine();
+                if (String.IsNullOrEmpty(fileName))
+                {
+                    return new SupportBank();
+                }
+                if (File.Exists(fileName) && (fileName.EndsWith(".csv") || fileName.EndsWith(".json")))
+                {
+                    return new SupportBank(fileName);
+                }
+                Console.WriteLine($"Could not find file {fileName}");
             }
-
-            return new SupportBank();
         }
 
         private static IEnumerable<Transaction> GetTransactionsFromFile(string fileName)
@@ -87,7 +89,7 @@ namespace SupportBank
             return nameToAccount;
         }
 
-        void WriteEnumerableToConsole<T>(IEnumerable<T> enumerable)
+        private void WriteEnumerableToConsole<T>(IEnumerable<T> enumerable)
         {
             foreach (var element in enumerable)
             {
@@ -95,11 +97,11 @@ namespace SupportBank
             }
         }
 
-        void ListAllAccounts() => WriteEnumerableToConsole(NameToAccount.Values);
+        private void ListAllAccounts() => WriteEnumerableToConsole(NameToAccount.Values);
 
-        void ListAccountTransactions(string name) => WriteEnumerableToConsole(Transactions.Where(transaction => transaction.FromAccount.Equals(name) || transaction.ToAccount.Equals(name)));
+        private void ListAccountTransactions(string name) => WriteEnumerableToConsole(Transactions.Where(transaction => transaction.FromAccount.Equals(name) || transaction.ToAccount.Equals(name)));
 
-        string GetValidAccountName()
+        private string GetValidAccountName()
         {
             Console.WriteLine("\nPlease enter the account holder's name: ");
             string name = Console.ReadLine();
@@ -112,7 +114,7 @@ namespace SupportBank
             return name;
         }
 
-        int GetUserOptions()
+        private int GetUserOptions()
         {
             Console.WriteLine("\nWhat would you like to do today?");
             Console.WriteLine(" 1) See all accounts.\n 2) See account transactions.");
@@ -128,14 +130,14 @@ namespace SupportBank
             return userOption;
         }
 
-        bool HasUserSaidYes()
+        private bool HasUserSaidYes()
         {
             var answer = Console.ReadLine();
             var yesAnswers = new List<string>() { "yes", "Yes", "y", "Y", "yeah", "Yeah", "YES" };
             return yesAnswers.Contains(answer);
         }
 
-        void RunSupportBank()
+        public void RunSupportBank()
         {
             Console.WriteLine("Welcome to Support Bank.");
             while (true)
