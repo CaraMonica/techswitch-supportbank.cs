@@ -13,7 +13,9 @@ namespace SupportBank
         private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
         public IEnumerable<Transaction> Transactions { get; set; }
         public Dictionary<string, Account> NameToAccount { get; set; }
-        private IEnumerable<TransactionsReader> transactionsReaders = new List<TransactionsReader>() { new CsvTransactionsReader(), new JsonTransactionsReader(), new XmlTransactionsReader() };
+        private IEnumerable<ITransactionsReader> transactionsReaders = new List<ITransactionsReader>() { new CsvTransactionsReader(), new JsonTransactionsReader(), new XmlTransactionsReader() };
+        private IEnumerable<ITransactionsWriter> transactionsWriters = new List<ITransactionsWriter>() { new CsvTransactionsWriter(), new JsonTransactionsWriter(), new XmlTransactionsWriter() };
+
         private SupportBank(string transactionFile = "./data/Transactions2014.csv")
         {
             Transactions = GetTransactionsFromFile(transactionFile);
@@ -109,13 +111,13 @@ namespace SupportBank
         private int GetUserOptions()
         {
             Console.WriteLine("\nWhat would you like to do today?");
-            Console.WriteLine(" 1) See all accounts.\n 2) See account transactions.");
+            Console.WriteLine(" 1) See all accounts.\n 2) See account transactions.\n 3) Save transactions to file.");
 
             int userOption;
             string firstInput = Console.ReadLine(); // String from user
-            while (!(int.TryParse(firstInput, out userOption) && userOption == 1 || userOption == 2))
+            while (!(int.TryParse(firstInput, out userOption) && (userOption == 1 || userOption == 2 || userOption == 3)))
             {
-                Console.WriteLine("Please enter a valid option 1 or 2.");
+                Console.WriteLine("Please enter a valid option 1, 2 or 3.");
                 firstInput = Console.ReadLine();
             }
 
@@ -129,18 +131,37 @@ namespace SupportBank
             return yesAnswers.Contains(answer);
         }
 
+        private void TransactionsToFile()
+        {
+            Console.WriteLine("\nPlease enter the file name:");
+            string fileName = Console.ReadLine();
+            ITransactionsWriter writer = transactionsWriters.First(writer => writer.CanProcessFile(fileName));
+            while (writer == null)
+            {
+                Console.WriteLine("Invalid file type. Please name a json, csv or xml file.");
+                fileName = Console.ReadLine();
+                writer = transactionsWriters.First(writer => writer.CanProcessFile(fileName));
+            }
+
+            writer.WriteFile(fileName, Transactions);
+        }
+
         public void RunSupportBank()
         {
             Console.WriteLine("Welcome to Support Bank.");
             while (true)
             {
-                if (GetUserOptions() == 1)
+                switch (GetUserOptions())
                 {
-                    ListAllAccounts(); // No class specified because method is not static
-                }
-                else
-                {
-                    ListAccountTransactions(GetValidAccountName());
+                    case 2:
+                        ListAccountTransactions(GetValidAccountName());
+                        break;
+                    case 3:
+                        TransactionsToFile();
+                        break;
+                    default:
+                        ListAllAccounts();
+                        break;
                 }
 
                 Console.WriteLine("\nWould you like to do something else today? y/n");
@@ -149,7 +170,6 @@ namespace SupportBank
                     break;
                 }
             }
-
             Console.WriteLine("Have a nice day!");
         }
 

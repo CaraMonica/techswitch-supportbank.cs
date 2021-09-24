@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace SupportBank
 {
-    interface TransactionsReader
+    interface ITransactionsReader
     {
         bool CanProcessFile(string fileName);
         IEnumerable<Transaction> ProcessFile(string fileName);
