@@ -5,7 +5,6 @@ using System.IO;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using Newtonsoft.Json;
 
 namespace SupportBank
 {
@@ -14,61 +13,54 @@ namespace SupportBank
         private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
         public IEnumerable<Transaction> Transactions { get; set; }
         public Dictionary<string, Account> NameToAccount { get; set; }
-        private SupportBank()
+        private IEnumerable<TransactionsReader> transactionsReaders = new List<TransactionsReader>() { new CsvTransactionReader(), new JsonTransactionReader(), new XmlTransactionReader() };
+        private SupportBank(string transactionFile = "./data/Transactions2014.csv")
         {
-            Transactions = SupportBank.GetTransactionsFromFile("./data/Transactions2014.csv");
-            NameToAccount = GetAccountsDictionary();
-        }
-        private SupportBank(string transactionFile)
-        {
-            Transactions = SupportBank.GetTransactionsFromFile(transactionFile);
+            Transactions = GetTransactionsFromFile(transactionFile);
             NameToAccount = GetAccountsDictionary();
         }
         public static SupportBank FromFile()
         {
+            SupportBank bank;
             while (true)
             {
                 Console.WriteLine("\nTo load your own file type the location below. To use the default press enter.");
                 string fileName = Console.ReadLine();
                 if (String.IsNullOrEmpty(fileName))
                 {
-                    return new SupportBank();
+                    bank = new SupportBank();
+                    break;
                 }
-                if (File.Exists(fileName) && (fileName.EndsWith(".csv") || fileName.EndsWith(".json")))
+
+                if (File.Exists(fileName))
                 {
-                    return new SupportBank(fileName);
+                    try
+                    {
+                        bank = new SupportBank(fileName);
+                        break;
+                    }
+                    catch (ArgumentOutOfRangeException e)
+                    {
+                        Logger.Error($" File type not supported, {e}");
+                    }
                 }
-                Console.WriteLine($"Could not find file {fileName}");
+                Logger.Info($"User provided missing or incorrect file name {fileName}");
+                Console.WriteLine($"Could not find file {fileName}.");
             }
+            return bank;
         }
 
-        private static IEnumerable<Transaction> GetTransactionsFromFile(string fileName)
+        private IEnumerable<Transaction> GetTransactionsFromFile(string fileName)
         {
-            if (fileName.EndsWith("csv"))
+            var reader = transactionsReaders.First(r => r.CanProcessFile(fileName));
+            if (reader is null)
             {
-                return GetTransactionsFromCSV(fileName);
-            }
-            else if (fileName.EndsWith("json"))
-            {
-                return GetTransactionsFromJSON(fileName);
+                throw new ArgumentOutOfRangeException($"File {fileName} not supported.");
             }
 
-            throw new ArgumentOutOfRangeException("File name is not of the correct type.", fileName);
+            return reader.ProcessFile(fileName);
         }
 
-        private static IEnumerable<Transaction> GetTransactionsFromJSON(string fileName) =>
-        JsonConvert.DeserializeObject<IEnumerable<Transaction>>(File.ReadAllText(fileName));
-
-        private static IEnumerable<Transaction> GetTransactionsFromCSV(string fileName) => File.ReadAllLines(fileName)
-                                                                                    .Skip(1)
-                                                                                    .Select(row => row.Split(","))
-                                                                                    .Select(row => Transaction.FromArray(row))
-                                                                                    .Where(t => t != null);
-
-        private void AddTransactions(string fileName)
-        {
-            Transactions = Transactions.Concat(GetTransactionsFromCSV(fileName));
-        }
         private Dictionary<string, Account> GetAccountsDictionary()
         {
             Dictionary<string, Account> nameToAccount = new Dictionary<string, Account>();

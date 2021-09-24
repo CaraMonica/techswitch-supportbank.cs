@@ -1,11 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NLog;
-using NLog.Config;
-using NLog.Targets;
 #nullable enable
 
 namespace SupportBank
@@ -37,38 +31,19 @@ namespace SupportBank
             amount = Amount;
         }
 
-        public static Transaction? FromArray(string[] transaction)
+        public static Transaction? FromArray(string[] transaction, int i)
         {
             DateTime date;
             if (!DateTime.TryParse(transaction[0], out date))
             {
-                Logger.Warn($"Could not parse transaction. {transaction[0]} is an invalid date.");
+                Logger.Warn($"Could not parse transaction {i}. {transaction[0]} is an invalid date.");
                 return null;
             }
 
             decimal amount;
             if (!decimal.TryParse(transaction[4], out amount))
             {
-                Logger.Warn($"Could not parse transaction. {transaction[4]} is an invalid decimal amount.");
-                return null;
-            }
-
-            return new Transaction(date, transaction[1], transaction[2], transaction[3], amount);
-        }
-
-        public static Transaction? FromJSON(string[] transaction)
-        {
-            DateTime date;
-            if (!DateTime.TryParse(transaction[0], out date))
-            {
-                Logger.Warn($"Could not parse transaction. {transaction[0]} is an invalid date.");
-                return null;
-            }
-
-            decimal amount;
-            if (!decimal.TryParse(transaction[4], out amount))
-            {
-                Logger.Warn($"Could not parse transaction. {transaction[4]} is an invalid decimal amount.");
+                Logger.Warn($"Could not parse transaction {i}. {transaction[4]} is an invalid decimal amount.");
                 return null;
             }
 
