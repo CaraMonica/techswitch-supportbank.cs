@@ -31,10 +31,22 @@ namespace SupportBank
             amount = Amount;
         }
 
-        public static Transaction? FromArray(string[] transaction, int i)
+        public static Transaction? FromArray(string[] transaction, int i, bool isDateTimeStamp = false)
         {
             DateTime date;
-            if (!DateTime.TryParse(transaction[0], out date))
+            if (isDateTimeStamp)
+            {
+                int unixTimeStamp;
+                if (!int.TryParse(transaction[0], out unixTimeStamp))
+                {
+                    Logger.Warn($"Could not parse transaction {i}. {transaction[0]} is an invalid timestamp.");
+                    return null;
+                }
+
+                date = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+                date = date.AddSeconds(unixTimeStamp).ToLocalTime();
+            }
+            else if (!DateTime.TryParse(transaction[0], out date))
             {
                 Logger.Warn($"Could not parse transaction {i}. {transaction[0]} is an invalid date.");
                 return null;
