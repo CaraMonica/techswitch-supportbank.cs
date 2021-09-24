@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace SupportBank
 {
-    class JsonTransactionReader : TransactionsReader
+    class JsonTransactionsReader : TransactionsReader
     {
         public bool CanProcessFile(string fileName) => Path.GetExtension(fileName.ToLower()) == ".json";
 

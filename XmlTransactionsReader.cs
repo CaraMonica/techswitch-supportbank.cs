@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace SupportBank
 {
-    class XmlTransactionReader : TransactionsReader
+    class XmlTransactionsReader : TransactionsReader
     {
         public bool CanProcessFile(string fileName) => Path.GetExtension(fileName.ToLower()) == ".xml";
 

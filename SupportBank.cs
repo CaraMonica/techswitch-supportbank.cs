@@ -13,7 +13,7 @@ namespace SupportBank
         private static readonly ILogger Logger = LogManager.GetCurrentClassLogger();
         public IEnumerable<Transaction> Transactions { get; set; }
         public Dictionary<string, Account> NameToAccount { get; set; }
-        private IEnumerable<TransactionsReader> transactionsReaders = new List<TransactionsReader>() { new CsvTransactionReader(), new JsonTransactionReader(), new XmlTransactionReader() };
+        private IEnumerable<TransactionsReader> transactionsReaders = new List<TransactionsReader>() { new CsvTransactionsReader(), new JsonTransactionsReader(), new XmlTransactionsReader() };
         private SupportBank(string transactionFile = "./data/Transactions2014.csv")
         {
             Transactions = GetTransactionsFromFile(transactionFile);

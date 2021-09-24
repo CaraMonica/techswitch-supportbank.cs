@@ -4,7 +4,7 @@ using System.IO;
 
 namespace SupportBank
 {
-    class CsvTransactionReader : TransactionsReader
+    class CsvTransactionsReader : TransactionsReader
     {
         public bool CanProcessFile(string fileName) => Path.GetExtension(fileName.ToLower()) == ".csv";
 
