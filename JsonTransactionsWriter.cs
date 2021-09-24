@@ -8,7 +8,8 @@ namespace SupportBank
     {
         public bool CanProcessFile(string fileName) => Path.GetExtension(fileName.ToLower()) == ".json";
 
-        public void WriteFile(string fileName, IEnumerable<Transaction> transactions) {
+        public void WriteFile(string fileName, IEnumerable<Transaction> transactions)
+        {
             string json = JsonSerializer.Serialize(transactions);
             File.WriteAllText(fileName, json);
         }

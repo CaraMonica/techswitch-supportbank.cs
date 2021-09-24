@@ -14,7 +14,7 @@ namespace SupportBank
         public IEnumerable<Transaction> Transactions { get; set; }
         public Dictionary<string, Account> NameToAccount { get; set; }
         private IEnumerable<ITransactionsReader> transactionsReaders = new List<ITransactionsReader>() { new CsvTransactionsReader(), new JsonTransactionsReader(), new XmlTransactionsReader() };
-        private IEnumerable<ITransactionsWriter> transactionsWriters = new List<ITransactionsWriter>() { new CsvTransactionsWriter(), new JsonTransactionsWriter(), new XmlTransactionsWriter() };
+        private IEnumerable<ITransactionsWriter> transactionsWriters = new List<ITransactionsWriter>() { new CsvTransactionsWriter(), new JsonTransactionsWriter() };
 
         private SupportBank(string transactionFile = "./data/Transactions2014.csv")
         {
@@ -91,6 +91,20 @@ namespace SupportBank
             }
         }
 
+        private void TransactionsToFile()
+        {
+            Console.WriteLine("\nPlease enter the file name:");
+            string fileName = Console.ReadLine();
+            ITransactionsWriter writer = transactionsWriters.First(writer => writer.CanProcessFile(fileName));
+            while (writer == null)
+            {
+                Console.WriteLine("Invalid file type. Please name a json, csv or xml file.");
+                fileName = Console.ReadLine();
+                writer = transactionsWriters.First(writer => writer.CanProcessFile(fileName));
+            }
+
+            writer.WriteFile(fileName, Transactions);
+        }
         private void ListAllAccounts() => WriteEnumerableToConsole(NameToAccount.Values);
 
         private void ListAccountTransactions(string name) => WriteEnumerableToConsole(Transactions.Where(transaction => transaction.FromAccount.Equals(name) || transaction.ToAccount.Equals(name)));
@@ -129,21 +143,6 @@ namespace SupportBank
             var answer = Console.ReadLine();
             var yesAnswers = new List<string>() { "yes", "Yes", "y", "Y", "yeah", "Yeah", "YES" };
             return yesAnswers.Contains(answer);
-        }
-
-        private void TransactionsToFile()
-        {
-            Console.WriteLine("\nPlease enter the file name:");
-            string fileName = Console.ReadLine();
-            ITransactionsWriter writer = transactionsWriters.First(writer => writer.CanProcessFile(fileName));
-            while (writer == null)
-            {
-                Console.WriteLine("Invalid file type. Please name a json, csv or xml file.");
-                fileName = Console.ReadLine();
-                writer = transactionsWriters.First(writer => writer.CanProcessFile(fileName));
-            }
-
-            writer.WriteFile(fileName, Transactions);
         }
 
         public void RunSupportBank()
